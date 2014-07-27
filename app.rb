@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'cgi'
 require 'json'
 require 'kconv'
 require 'net/http'
@@ -55,7 +56,7 @@ api_query_template = {
 
 
 def render_response(cmsid, category, title)
-  "#{cmsid}|#{NKF.nkf('-s -W -Z4', category)}|#{title.tosjis}"
+  "#{cmsid}|#{NKF.nkf('-s -W -Z4', category)}|#{CGI.unescapeHTML(title).tosjis}"
 end
 
 def request_api(url, body)
