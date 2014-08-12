@@ -1,5 +1,8 @@
 # Created by http://www.gitignore.io
 
+### Mac ###
+.DS_Store
+
 ### Ruby ###
 *.gem
 *.rbc
