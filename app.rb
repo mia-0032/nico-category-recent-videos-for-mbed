@@ -2,8 +2,6 @@ require 'sinatra'
 require 'cgi'
 require 'json'
 require 'net/http'
-require 'nkf'
-require 'rmagick'
 require 'uri'
 
 NICO_CATEGORIES = {
@@ -54,6 +52,7 @@ api_query_template = {
 
 
 def render_response(cmsid, category, title)
+  require 'nkf'
   "#{cmsid}|#{NKF.nkf('-w -Z4', category)}|#{CGI.unescapeHTML(title)}"
 end
 
@@ -98,4 +97,31 @@ get '/recent/:category' do
   cmsid = contents['values'][0]['cmsid']
   title = contents['values'][0]['title']
   render_response cmsid, category, title
+end
+
+get '/thumbnail/:video_id' do
+  require 'open-uri'
+  require 'rexml/document'
+  require 'RMagick'
+  content_type "image/jpeg"
+
+  thumbinfo = open('http://ext.nicovideo.jp/api/getthumbinfo/' + params[:video_id])
+  return thumbinfo.content_type unless thumbinfo.content_type =~ /^application\/xml/
+
+  thumbinfo = REXML::Document.new(thumbinfo.read)
+  thumbnail_url = thumbinfo.elements['nicovideo_thumb_response/thumb/thumbnail_url'].text
+
+  res = open(thumbnail_url)
+  return unless res.content_type =~ /^image/
+
+  img = Magick::Image.from_blob(res.read).shift
+  img = img_resize(img, 128, 128)
+  img.format = 'jpeg'
+  img.to_blob
+end
+
+def img_resize(img, w, h)
+  img = img.resize_to_fit!(w, h)
+  bg = Magick::Image.new(w, h) do self.background_color = 'black' end
+  bg.composite!(img, Magick::CenterGravity, Magick::OverCompositeOp)
 end
