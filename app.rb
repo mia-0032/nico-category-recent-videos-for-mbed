@@ -1,12 +1,10 @@
 require 'sinatra'
 require 'cgi'
 require 'json'
-require 'kconv'
 require 'net/http'
 require 'nkf'
+require 'rmagick'
 require 'uri'
-
-set :default_encoding => 'Shift_JIS'
 
 NICO_CATEGORIES = {
   :ent        => 'エンターテイメント',
@@ -56,7 +54,7 @@ api_query_template = {
 
 
 def render_response(cmsid, category, title)
-  "#{cmsid}|#{NKF.nkf('-s -W -Z4', category)}|#{CGI.unescapeHTML(title).tosjis}"
+  "#{cmsid}|#{NKF.nkf('-w -Z4', category)}|#{CGI.unescapeHTML(title)}"
 end
 
 def request_api(url, body)
@@ -83,7 +81,7 @@ get '/' do
   render_response cmsid, category, title
 end
 
-get '/:category' do
+get '/recent/:category' do
   if NICO_CATEGORIES.include?(params[:category].to_sym)
     category = NICO_CATEGORIES[params[:category].to_sym]
   else
@@ -101,4 +99,3 @@ get '/:category' do
   title = contents['values'][0]['title']
   render_response cmsid, category, title
 end
-
