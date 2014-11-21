@@ -103,7 +103,7 @@ get '/thumbnail/:video_id' do
   require 'open-uri'
   require 'rexml/document'
   require 'RMagick'
-  content_type "image/jpeg"
+  content_type "image/bmp"
 
   thumbinfo = open('http://ext.nicovideo.jp/api/getthumbinfo/' + params[:video_id])
   return thumbinfo.content_type unless thumbinfo.content_type =~ /^application\/xml/
@@ -116,12 +116,12 @@ get '/thumbnail/:video_id' do
 
   img = Magick::Image.from_blob(res.read).shift
   img = img_resize(img, 128, 128)
-  img.format = 'jpeg'
+  img.format = 'BMP3'
   img.to_blob
 end
 
 def img_resize(img, w, h)
   img = img.resize_to_fit!(w, h)
-  bg = Magick::Image.new(w, h) do self.background_color = 'black' end
+  bg = Magick::Image.new(w, h) do self.background_color = 'white' end
   bg.composite!(img, Magick::CenterGravity, Magick::OverCompositeOp)
 end
