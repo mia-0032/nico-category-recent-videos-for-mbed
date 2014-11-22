@@ -53,7 +53,7 @@ api_query_template = {
 
 def render_response(cmsid, category, title)
   require 'nkf'
-  "#{cmsid}|#{NKF.nkf('-w -Z4', category)}|#{CGI.unescapeHTML(title)}"
+  JSON.generate({:cmsid => cmsid, :category => NKF.nkf('-w -Z4', category), :title => CGI.unescapeHTML(title)})
 end
 
 def request_api(url, body)
