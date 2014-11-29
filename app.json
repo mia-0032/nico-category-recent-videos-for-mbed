@@ -1,5 +1,5 @@
 {
-  "name": "nicovideo_recent",
+  "name": "nico-category-recent-videos-for-mbed",
   "description": "niconico recent video in category api for mbed device.",
   "repository": "https://github.com/mia-0032/nico-category-recent-videos-for-mbed",
   "keywords": ["mbed", "niconico"],

@@ -1,4 +1,4 @@
-nicovideo category recent videos api
+nico-category-recent-videos-for-mbed
 ====================
 
 ニコニコ新検索βの検索APIをラップしてカテゴリごとの新着動画を取得する。
@@ -27,8 +27,8 @@ mbedで表示するためにフォーマットした文字列を返す。
 
 以下のレスポンスが必ず返る。
 
-```
-sm0|ｻﾝﾌﾟﾙ|サンプルリクエスト
+```javascript
+{"cmsid":"sm0", "category":"ｻﾝﾌﾟﾙ", "title":"サンプルリクエスト"}
 ```
 
 ### /recent/\<category\>
@@ -65,19 +65,21 @@ sm0|ｻﾝﾌﾟﾙ|サンプルリクエスト
 - imas : アイドルマスター
 - radio : ラジオ
 - draw : 描いてみた
+- are : 例のアレ
 - other : その他
 - diary : 日記
+- r18 : R-18
 
 #### レスポンス
 
-レスポンスのフォーマット：
+レスポンスのフォーマット
 
+```javascript
+{"cmsid":"動画ID", "category":"ｶﾃｺﾞﾘ", "title":"動画タイトル(32文字)"}
 ```
-動画ID|ｶﾃｺﾞﾘ名|動画タイトル
-```
 
-## TODO
+### /thumbnail/\<video_id\>
 
- - mbed用のフォーマットかJSONで返すかを選択できるようにしたい
- - 取得件数を指定できるようにしたい
- - APIにアクセス失敗したときのエラー表示
+`<video_id>`に動画IDを渡すと128*128のサイズに補正した動画サムネイル画像を返す。
+
+フォーマットはbmp3になる。
