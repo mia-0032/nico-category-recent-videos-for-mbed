@@ -4,6 +4,11 @@ require 'json'
 require 'net/http'
 require 'uri'
 
+# if you have videos which you don't want to display, you add video_id to this array.
+NG_VIDEOS = [
+    'sm9'
+]
+
 NICO_CATEGORIES = {
   :ent        => 'エンターテイメント',
   :music      => '音楽',
@@ -31,8 +36,10 @@ NICO_CATEGORIES = {
   :imas       => 'アイドルマスター',
   :radio      => 'ラジオ',
   :draw       => '描いてみた',
+  :are        => '例のアレ',
   :other      => 'その他',
-  :diary      => '日記'
+  :diary      => '日記',
+  :r18        => 'R-18'
 }
 
 SEARCH_API_URL = 'http://api.search.nicovideo.jp/api/'
@@ -40,7 +47,7 @@ SEARCH_API_URL = 'http://api.search.nicovideo.jp/api/'
 api_query_template = {
   :query   => '',
   :service => ['video'],
-  :search  => ['tags'],
+  :search  => ['tags_exact'],
   :join    => ['cmsid', 'title', 'start_time'],
   :from    => 0,
   :size    => 1,
@@ -50,10 +57,28 @@ api_query_template = {
   :reason  => 'mbed festival'
 }
 
+class String
+  # todo: deal with Halfwidth Katakana
+  def mb_adjust_size(width)
+    sum_width = 0
+    each_char.map {|c|
+      sum_width += c.bytesize == 1 ? 1 : 2
+      width >= sum_width ? c : ''
+    }.reduce('', &:+)
+  end
+  # todo: deal with Halfwidth Katakana
+  def mb_count()
+    each_char.map{|c| c.bytesize == 1 ? 1 : 2}.reduce(0, &:+)
+  end
+end
 
 def render_response(cmsid, category, title)
   require 'nkf'
-  JSON.generate({:cmsid => cmsid, :category => NKF.nkf('-w -Z4', category), :title => CGI.unescapeHTML(title)})
+  # todo: adjust width total string length (category + title).
+  # todo: set adjustment width by GET parameter.
+  category = NKF.nkf('-w -Z4', category)
+  title = CGI.unescapeHTML(title)
+  JSON.generate({:cmsid => cmsid, :category => category, :title => title.mb_adjust_size(36)})
 end
 
 def request_api(url, body)
@@ -93,9 +118,15 @@ get '/recent/:category' do
   response = request_api(SEARCH_API_URL, JSON.pretty_generate(api_query))
 
   contents = JSON.parse(response.body.split("\n")[2])
-  
+
   cmsid = contents['values'][0]['cmsid']
   title = contents['values'][0]['title']
+
+  if NG_VIDEOS.include? cmsid
+    cmsid = 'sm9'
+    category = '音楽'
+    title = '新・豪血寺一族 -煩悩解放 - レッツゴー！陰陽師'
+  end
   render_response cmsid, category, title
 end
 
@@ -122,6 +153,6 @@ end
 
 def img_resize(img, w, h)
   img = img.resize_to_fit!(w, h)
-  bg = Magick::Image.new(w, h) do self.background_color = 'white' end
+  bg = Magick::Image.new(w, h) do self.background_color = 'black' end
   bg.composite!(img, Magick::CenterGravity, Magick::OverCompositeOp)
 end
